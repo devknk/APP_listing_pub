@@ -7,6 +7,7 @@ from .services import (
     get_product_by_id,
     get_products,
     update_product_details,
+    delete_product_by_id,
 )
 
 
@@ -27,7 +28,7 @@ def parse_price(value: str) -> Decimal:
 
 def build_parser() -> argparse.ArgumentParser:
     """Definiuje komendy dostepne w terminalu."""
-    parser = argparse.ArgumentParser( #tworzy parser
+    parser = argparse.ArgumentParser( # tworzy parser
         prog="listing-pub",
         description="Baza produktow w SQLite.",
     )
@@ -53,6 +54,9 @@ def build_parser() -> argparse.ArgumentParser:
     update_parser.add_argument("--price", type=parse_price)
     update_parser.add_argument("--category")
 
+    delete_parser = subparsers.add_parser("delete-product", help="Usun produkt.")
+    delete_parser.add_argument("--id", required=True, type=int)
+
     return parser
 
 
@@ -69,7 +73,6 @@ def handle_add_product(args: argparse.Namespace) -> None:
         category=args.category,
     )
     print(f"Dodano produkt id={product_id}.")
-
 
 
 def handle_list_products() -> None:
@@ -113,6 +116,16 @@ def handle_update_product(args: argparse.Namespace) -> None:
     print(f"Kategoria: {product.category}")
 
 
+def handle_delete_product(args: argparse.Namespace) -> None:
+    try:
+        deleted_product = delete_product_by_id(args.id)
+    except LookupError as exc:
+        print(f"Blad: {exc}")
+        return
+
+    print(f"Usunieto produkt {deleted_product.title} o id={deleted_product.id}.")
+
+
 def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
@@ -127,5 +140,7 @@ def main() -> None:
         handle_show_product(args)
     elif args.command == "update-product":
         handle_update_product(args)
+    elif args.command == "delete-product":
+        handle_delete_product(args)
     else:
         parser.error("Nieznana komenda.")

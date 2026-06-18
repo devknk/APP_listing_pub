@@ -1,13 +1,16 @@
 from decimal import Decimal
 
-from .database import add_product, get_product, init_db, list_products, update_product
+from .database import (
+    add_product,
+    delete_product,
+    get_product,
+    init_db,
+    list_products,
+    update_product,
+)
+
 from .models import Product
 
-'''żeby utworzyć produkt:
-1. upewnij się, że baza istnieje
-2. stwórz Product
-3. zapisz Product w bazie
-4. zwróć id nowego produktu'''
 
 def create_product(
     title: str,
@@ -25,9 +28,11 @@ def create_product(
     )
     return add_product(product)
 
+
 def get_products() -> list[Product]:
     init_db()
     return list_products()
+
 
 def get_product_by_id(product_id: int) -> Product:
     init_db()
@@ -56,3 +61,10 @@ def update_product_details(
     )
     update_product(updated_product)
     return updated_product
+
+
+def delete_product_by_id(product_id: int) -> Product:
+    init_db()
+    deleted_product = get_product(product_id)
+    delete_product(product_id)
+    return deleted_product

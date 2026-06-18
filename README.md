@@ -1,6 +1,6 @@
 # APP Listing Publisher
 
-Wersja: `0.1.0`
+Wersja: `0.1.1`
 
 APP Listing Publisher to pierwszy prototyp aplikacji do zarzadzania produktami przygotowywanymi do publikacji na portalach ogloszeniowych. Aktualna wersja koncentruje sie na podstawowym katalogu produktow oraz lokalnej bazie SQLite, ktora stanowi fundament pod kolejne etapy: obsluge zdjec, statusow publikacji i integracji z portalami.
 
@@ -12,7 +12,8 @@ Aktualnie aplikacja umozliwia:
 - dodanie produktu do katalogu,
 - wyswietlenie listy produktow,
 - wyswietlenie szczegolow pojedynczego produktu,
-- aktualizacje wybranych danych produktu.
+- aktualizacje wybranych danych produktu,
+- usuwanie produktu.
 
 Produkt zawiera obecnie:
 
@@ -143,7 +144,6 @@ sqlite3 data/products.sqlite3 "SELECT * FROM products;"
 
 Najblizsze etapy rozwoju:
 
-- dodanie usuwania produktow,
 - obsluga zdjec produktow,
 - migracje struktury bazy danych,
 - statusy publikacji ogloszen,

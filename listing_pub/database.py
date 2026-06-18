@@ -126,3 +126,14 @@ def update_product(product: Product, db_path: Path = DB_PATH) -> None:
 
     if cursor.rowcount == 0:
         raise LookupError(f"Nie znaleziono produktu o id={product.id}.")
+
+
+def delete_product(product_id: int, db_path: Path = DB_PATH) -> None:
+    """Usuwa produkt z bazy po id."""
+    with connect(db_path) as connection:
+        cursor = connection.execute(
+            "DELETE FROM products WHERE id = ?",
+            (product_id,),
+        )
+    if cursor.rowcount == 0:
+        raise LookupError(f"Nie znaleziono produktu o id={product_id}.")
