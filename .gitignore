@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+.venv/
+data/*.sqlite3
+photos/*
+!photos/.gitkeep
+_learnings/
+.idea/
+.DS_Store
