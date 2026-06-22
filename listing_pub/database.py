@@ -5,7 +5,6 @@ from pathlib import Path
 from .config import DATA_DIR, DB_PATH, PHOTOS_DIR
 from .models import Product
 
-
 # SQL tworzacy pierwsza tabele w projekcie.
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS products (
@@ -15,6 +14,14 @@ CREATE TABLE IF NOT EXISTS products (
     price TEXT NOT NULL,
     category TEXT NOT NULL,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS product_photos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    product_id INTEGER NOT NULL,
+    path TEXT NOT NULL,
+    position INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 """
 
@@ -30,7 +37,7 @@ def connect(db_path: Path = DB_PATH) -> sqlite3.Connection:
 
     connection = sqlite3.connect(db_path)
 
-    # row_factory sprawia, ze wynik SELECT mozna czytac po nazwie kolumny,
+    # row_factory pozwala czytac wynik SELECT po nazwie kolumny,
     # np. row["title"], zamiast po indeksie, np. row[1].
     connection.row_factory = sqlite3.Row
     return connection
@@ -59,7 +66,18 @@ def add_product(product: Product, db_path: Path = DB_PATH) -> int:
                 product.category.strip(),
             ),
         )
-        return int(cursor.lastrowid)
+        product_id = int(cursor.lastrowid)
+        connection.executemany(
+            """
+            INSERT INTO product_photos (product_id, path, position)
+            VALUES (?, ?, ?)
+            """,
+            [
+                (product_id, str(photo), index)
+                for index, photo in enumerate(product.photos)
+            ],
+        )
+        return product_id
 
 
 def list_products(db_path: Path = DB_PATH) -> list[Product]:
@@ -68,17 +86,29 @@ def list_products(db_path: Path = DB_PATH) -> list[Product]:
         rows = connection.execute(
             "SELECT * FROM products ORDER BY created_at DESC, id DESC"
         ).fetchall()
+        products: list[Product] = []
+        for row in rows:
+            photo_rows = connection.execute(
+                """
+                SELECT path FROM product_photos
+                WHERE product_id = ?
+                ORDER BY position, id
+                """,
+                (row["id"],),
+            ).fetchall()
 
-    return [
-        Product(
-            id=int(row["id"]),
-            title=row["title"],
-            description=row["description"],
-            price=Decimal(row["price"]),
-            category=row["category"],
-        )
-        for row in rows
-    ]
+            product = Product(
+                id=int(row["id"]),
+                title=row["title"],
+                description=row["description"],
+                price=Decimal(row["price"]),
+                category=row["category"],
+                photos=tuple(Path(photo_row["path"]) for photo_row in photo_rows),
+            )
+
+            products.append(product)
+
+    return products
 
 
 def get_product(product_id: int, db_path: Path = DB_PATH) -> Product:
@@ -89,8 +119,17 @@ def get_product(product_id: int, db_path: Path = DB_PATH) -> Product:
             (product_id,),
         ).fetchone()
 
-    if row is None:
-        raise LookupError(f"Nie znaleziono produktu o id={product_id}.")
+        if row is None:
+            raise LookupError(f"Nie znaleziono produktu o id={product_id}.")
+
+        photo_rows = connection.execute(
+            """
+            SELECT path FROM product_photos
+            WHERE product_id = ?
+            ORDER BY position, id
+            """,
+            (product_id,),
+        ).fetchall()
 
     return Product(
         id=int(row["id"]),
@@ -98,6 +137,7 @@ def get_product(product_id: int, db_path: Path = DB_PATH) -> Product:
         description=row["description"],
         price=Decimal(row["price"]),
         category=row["category"],
+        photos=tuple(Path(photo_row["path"]) for photo_row in photo_rows),
     )
 
 

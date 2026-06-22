@@ -1,5 +1,6 @@
 import argparse
 from decimal import Decimal, InvalidOperation
+from pathlib import Path
 
 from .database import init_db
 from .services import (
@@ -26,8 +27,19 @@ def parse_price(value: str) -> Decimal:
     return price
 
 
+def parse_photo_path(value: str) -> Path:
+    path = Path(value)
+
+    if not path.exists():
+        raise argparse.ArgumentTypeError(f'Plik nie istnieje: {path}')
+
+    if not path.is_file():
+        raise argparse.ArgumentTypeError(f'Sciezka nie jest plikiem: {path}')
+
+    return path
+
+
 def build_parser() -> argparse.ArgumentParser:
-    """Definiuje komendy dostepne w terminalu."""
     parser = argparse.ArgumentParser( # tworzy parser
         prog="listing-pub",
         description="Baza produktow w SQLite.",
@@ -41,6 +53,12 @@ def build_parser() -> argparse.ArgumentParser:
     add_parser.add_argument("--description", required=True)
     add_parser.add_argument("--price", required=True, type=parse_price)
     add_parser.add_argument("--category", required=True)
+    add_parser.add_argument(
+        "--photo",
+        action="append",
+        required=True,
+        type=parse_photo_path
+    )
 
     subparsers.add_parser("list-products", help="Pokazuje liste produktow.")
 
@@ -71,6 +89,7 @@ def handle_add_product(args: argparse.Namespace) -> None:
         description=args.description,
         price=args.price,
         category=args.category,
+        photos=tuple(args.photo),
     )
     print(f"Dodano produkt id={product_id}.")
 
@@ -83,7 +102,11 @@ def handle_list_products() -> None:
         return
 
     for product in products:
-        print(f"[{product.id}] {product.title} | {product.price} PLN | {product.category}")
+        print(
+            f"[{product.id}] {product.title} "
+            f"| {product.price} PLN | {product.category} "
+            f"| {product.description} | zdjecia: {len(product.photos)}"
+        )
 
 
 def handle_show_product(args: argparse.Namespace) -> None:
@@ -94,6 +117,9 @@ def handle_show_product(args: argparse.Namespace) -> None:
     print(f"Opis: {product.description}")
     print(f"Cena: {product.price} PLN")
     print(f"Kategoria: {product.category}")
+    print("Zdjecia:")
+    for photo in product.photos:
+        print(f"- {photo}")
 
 
 def handle_update_product(args: argparse.Namespace) -> None:
