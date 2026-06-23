@@ -1,6 +1,6 @@
 # APP Listing Publisher
 
-Wersja: `0.1.1`
+Wersja: `0.1.2`
 
 APP Listing Publisher to pierwszy prototyp aplikacji do zarzadzania produktami przygotowywanymi do publikacji na portalach ogloszeniowych. Aktualna wersja koncentruje sie na podstawowym katalogu produktow oraz lokalnej bazie SQLite, ktora stanowi fundament pod kolejne etapy: obsluge zdjec, statusow publikacji i integracji z portalami.
 
@@ -13,14 +13,26 @@ Aktualnie aplikacja umozliwia:
 - wyswietlenie listy produktow,
 - wyswietlenie szczegolow pojedynczego produktu,
 - aktualizacje wybranych danych produktu,
-- usuwanie produktu.
+- usuwanie produktu,
+- obsluge zdjec produktow.
 
 Produkt zawiera obecnie:
 
 - tytul,
 - opis,
 - cene,
-- kategorie.
+- kategorie,
+- zdjecia.
+
+## Plan Rozwoju
+
+Najblizsze etapy rozwoju:
+
+- migracje struktury bazy danych,
+- statusy publikacji ogloszen,
+- tryb dry run dla publikacji,
+- integracje z portalami ogloszeniowymi,
+- automatyzacja przegladarki dla procesu publikacji.
 
 ## Architektura
 
@@ -58,6 +70,7 @@ Najwazniejsze moduly:
 - SQLite dostepny w systemie
 
 Projekt nie wymaga obecnie zewnetrznych bibliotek.
+Do uruchamiania testow developerskich wymagany jest pytest z requirements-dev.txt.
 
 ## Uruchomienie
 
@@ -88,7 +101,8 @@ python3 -m listing_pub add-product \
   --title "Kurtka jeansowa" \
   --description "Stan bardzo dobry, rozmiar M" \
   --price 79.99 \
-  --category "Ubrania"
+  --category "Ubrania" \
+  --photo photos/photo.jpg
 ```
 
 Lista produktow:
@@ -126,6 +140,13 @@ Aktualna tabela `products` przechowuje:
 - `category`,
 - `created_at`.
 
+Tabela `product_photos` przechowuje:
+
+- `id`,
+- `product_id`,
+- `path`,
+- `position`.
+
 Pomocne komendy diagnostyczne:
 
 ```bash
@@ -140,17 +161,10 @@ sqlite3 data/products.sqlite3 ".schema products"
 sqlite3 data/products.sqlite3 "SELECT * FROM products;"
 ```
 
-## Plan Rozwoju
-
-Najblizsze etapy rozwoju:
-
-- obsluga zdjec produktow,
-- migracje struktury bazy danych,
-- statusy publikacji ogloszen,
-- tryb dry run dla publikacji,
-- integracje z portalami ogloszeniowymi,
-- automatyzacja przegladarki dla procesu publikacji.
+```bash
+sqlite3 data/products.sqlite3 "SELECT * FROM product_photos;"
+```
 
 ## Status
 
-Prototyp jest gotowy do lokalnych testow funkcji katalogu produktow. Kolejny etap powinien domknac pelny CRUD przez dodanie komendy usuwania produktu.
+Prototyp obsluguje podstawowy CRUD produktow oraz zapis sciezek zdjec w lokalnej bazie SQLite.

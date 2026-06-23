@@ -1,4 +1,5 @@
 from decimal import Decimal
+from pathlib import Path
 
 from .database import (
     add_product,
@@ -17,6 +18,7 @@ def create_product(
     description: str,
     price: Decimal,
     category: str,
+    photos: tuple[Path, ...],
 ) -> int:
     init_db()
     product = Product(
@@ -25,6 +27,7 @@ def create_product(
         description=description,
         price=price,
         category=category,
+        photos=photos,
     )
     return add_product(product)
 
@@ -45,10 +48,17 @@ def update_product_details(
     description: str | None = None,
     price: Decimal | None = None,
     category: str | None = None,
+    photos: tuple[Path, ...] | None = None,
 ) -> Product:
     init_db()
 
-    if title is None and description is None and price is None and category is None:
+    if (
+        title is None
+        and description is None
+        and price is None
+        and category is None
+        and photos is None
+    ):
         raise ValueError("Podaj przynajmniej jedno pole do aktualizacji.")
 
     current_product = get_product(product_id)
@@ -58,6 +68,7 @@ def update_product_details(
         description=description if description is not None else current_product.description,
         price=price if price is not None else current_product.price,
         category=category if category is not None else current_product.category,
+        photos=photos if photos is not None else current_product.photos,
     )
     update_product(updated_product)
     return updated_product
