@@ -2,26 +2,14 @@ import sqlite3
 from decimal import Decimal
 from pathlib import Path
 
-from .config import DATA_DIR, DB_PATH, PHOTOS_DIR
+from .config import DATA_DIR, DB_PATH, MIGRATIONS_DIR, PHOTOS_DIR
 from .models import Product
 
-# SQL tworzacy pierwsza tabele w projekcie.
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS products (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    description TEXT NOT NULL,
-    price TEXT NOT NULL,
-    category TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
 
-CREATE TABLE IF NOT EXISTS product_photos (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    product_id INTEGER NOT NULL,
-    path TEXT NOT NULL,
-    position INTEGER NOT NULL DEFAULT 0,
-    FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE CASCADE
+MIGRATIONS_TABLE = """
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    version TEXT PRIMARY KEY,
+    applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 """
 
@@ -44,9 +32,40 @@ def connect(db_path: Path = DB_PATH) -> sqlite3.Connection:
 
 
 def init_db(db_path: Path = DB_PATH) -> None:
-    """Tworzy tabele potrzebne aplikacji."""
+    """Tworzy lub aktualizuje strukture bazy danych."""
+    run_migrations(db_path)
+
+
+def migration_files(migrations_dir: Path = MIGRATIONS_DIR) -> list[Path]:
+    if not migrations_dir.exists():
+        return []
+    return sorted(migrations_dir.glob("*.sql"))
+
+
+def applied_migrations(connection: sqlite3.Connection) -> set[str]:
+    connection.execute(MIGRATIONS_TABLE)
+    rows = connection.execute("SELECT version FROM schema_migrations").fetchall()
+    return {row["version"] for row in rows}
+
+
+def run_migrations(db_path: Path = DB_PATH) -> list[str]:
+    applied_now: list[str] = []
+
     with connect(db_path) as connection:
-        connection.executescript(SCHEMA)
+        applied = applied_migrations(connection)
+        for migration_file in migration_files():
+            version = migration_file.name
+            if version in applied:
+                continue
+            sql = migration_file.read_text(encoding="utf-8")
+            connection.executescript(sql)
+            connection.execute(
+                "INSERT INTO schema_migrations (version) VALUES (?)",
+                (version,),
+            )
+            applied_now.append(version)
+
+    return applied_now
 
 
 def add_product(product: Product, db_path: Path = DB_PATH) -> int:
