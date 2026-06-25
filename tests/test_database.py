@@ -1,7 +1,7 @@
 from decimal import Decimal
 from pathlib import Path
 
-from listing_pub.database import add_product, get_product, init_db
+from listing_pub.database import add_product, get_product, init_db, run_migrations
 from listing_pub.models import Product
 
 
@@ -27,3 +27,12 @@ def test_add_product_saves_photos(tmp_path):
 
     assert loaded_product.id == product_id
     assert loaded_product.photos == (photo_1, photo_2)
+
+
+def test_run_migrations(tmp_path):
+    db_path = tmp_path / "products.sqlite3"
+
+    first_run = run_migrations(db_path=db_path)
+    second_run = run_migrations(db_path=db_path)
+    assert first_run == ["001_initial.sql"]
+    assert second_run == []

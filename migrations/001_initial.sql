@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    price TEXT NOT NULL,
+    category TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS product_photos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    product_id INTEGER NOT NULL,
+    path TEXT NOT NULL,
+    position INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE CASCADE
+);
