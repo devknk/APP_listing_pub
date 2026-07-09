@@ -36,3 +36,14 @@ class Product:
             if photo.suffix.lower() not in ALLOWED_PHOTO_EXTENSIONS:
                 raise ValueError(f"Nieobslugiwany format zdjecia: {photo}")
 
+
+@dataclass(frozen=True)
+class ListingPublication:
+    """Obiekt reprezentujacy jedno ogloszenie w aplikacji."""
+
+    id: int | None
+    product_id: int
+    portal: str
+    status: str = "draft"
+    external_url: str | None = None
+    error_message: str | None = None
