@@ -14,7 +14,9 @@ Aktualnie aplikacja umozliwia:
 - wyswietlenie szczegolow pojedynczego produktu,
 - aktualizacje wybranych danych produktu,
 - usuwanie produktu,
-- obsluge zdjec produktow.
+- obsluge zdjec produktow,
+- migracje struktury bazy danych,
+- zapis informacji o publikacjach ogloszen na portalach.
 
 Produkt zawiera obecnie:
 
@@ -28,8 +30,8 @@ Produkt zawiera obecnie:
 
 Najblizsze etapy rozwoju:
 
-- migracje struktury bazy danych,
-- statusy publikacji ogloszen,
+- obsluge zmian statusow publikacji,
+- komendy CLI do zarzadzania publikacjami,
 - tryb dry run dla publikacji,
 - integracje z portalami ogloszeniowymi,
 - automatyzacja przegladarki dla procesu publikacji.
@@ -147,6 +149,17 @@ Tabela `product_photos` przechowuje:
 - `path`,
 - `position`.
 
+Tabela `listing_publications` przechowuje:
+
+- `id`,
+- `product_id`,
+- `portal`,
+- `status`,
+- `external_url`,
+- `error_message`,
+- `created_at`,
+- `updated_at`.
+
 Pomocne komendy diagnostyczne:
 
 ```bash
@@ -165,6 +178,10 @@ sqlite3 data/products.sqlite3 "SELECT * FROM products;"
 sqlite3 data/products.sqlite3 "SELECT * FROM product_photos;"
 ```
 
+```bash
+sqlite3 data/products.sqlite3 "SELECT * FROM listing_publications;"
+```
+
 ## Status
 
-Prototyp obsluguje podstawowy CRUD produktow oraz zapis sciezek zdjec w lokalnej bazie SQLite.
+Prototyp obsluguje podstawowy CRUD produktow, zapis sciezek zdjec oraz podstawowy zapis publikacji ogloszen w lokalnej bazie SQLite.

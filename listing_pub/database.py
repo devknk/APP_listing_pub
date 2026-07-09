@@ -3,7 +3,7 @@ from decimal import Decimal
 from pathlib import Path
 
 from .config import DATA_DIR, DB_PATH, MIGRATIONS_DIR, PHOTOS_DIR
-from .models import Product
+from .models import ListingPublication, Product
 
 
 MIGRATIONS_TABLE = """
@@ -99,6 +99,30 @@ def add_product(product: Product, db_path: Path = DB_PATH) -> int:
         return product_id
 
 
+def add_listing_publication(
+    publication: ListingPublication,
+    db_path: Path = DB_PATH,
+) -> int:
+    """Dodaje publikacje ogloszenia do bazy i zwraca jej nowe id."""
+    with connect(db_path) as connection:
+        cursor = connection.execute(
+            """
+            INSERT INTO listing_publications (product_id, portal, status, external_url, error_message)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                publication.product_id,
+                publication.portal.strip(),
+                publication.status.strip(),
+                publication.external_url,
+                publication.error_message,
+            ),
+        )
+        listing_id = int(cursor.lastrowid)
+
+        return listing_id
+
+
 def list_products(db_path: Path = DB_PATH) -> list[Product]:
     """Pobiera wszystkie produkty z bazy."""
     with connect(db_path) as connection:
@@ -160,6 +184,27 @@ def get_product(product_id: int, db_path: Path = DB_PATH) -> Product:
     )
 
 
+def get_listing_publication(listing_id: int, db_path: Path = DB_PATH) -> ListingPublication:
+    """Pobiera jedna publikacje ogloszenia po id."""
+    with connect(db_path) as connection:
+        row = connection.execute(
+            "SELECT * FROM listing_publications WHERE id = ?",
+            (listing_id,),
+        ).fetchone()
+
+        if row is None:
+            raise LookupError(f"Nie znaleziono ogłoszenia o id={listing_id}.")
+
+        return ListingPublication(
+            id=int(row["id"]),
+            product_id=int(row["product_id"]),
+            portal=row["portal"],
+            status=row["status"],
+            external_url=row["external_url"],
+            error_message=row["error_message"],
+        )
+
+
 def update_product(product: Product, db_path: Path = DB_PATH) -> None:
     """Aktualizuje istniejacy produkt w bazie."""
     if product.id is None:
@@ -196,3 +241,5 @@ def delete_product(product_id: int, db_path: Path = DB_PATH) -> None:
         )
     if cursor.rowcount == 0:
         raise LookupError(f"Nie znaleziono produktu o id={product_id}.")
+
+
