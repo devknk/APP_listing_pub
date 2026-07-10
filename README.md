@@ -1,6 +1,6 @@
 # APP Listing Publisher
 
-Wersja: `0.1.2`
+Wersja: `0.1.3`
 
 APP Listing Publisher to pierwszy prototyp aplikacji do zarzadzania produktami przygotowywanymi do publikacji na portalach ogloszeniowych. Aktualna wersja koncentruje sie na podstawowym katalogu produktow oraz lokalnej bazie SQLite, ktora stanowi fundament pod kolejne etapy: obsluge zdjec, statusow publikacji i integracji z portalami.
 
