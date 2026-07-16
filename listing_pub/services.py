@@ -1,16 +1,38 @@
 from decimal import Decimal
 from pathlib import Path
 
+from .config import DB_PATH
 from .database import (
+    add_listing_publication,
     add_product,
     delete_product,
+    get_listing_publication,
     get_product,
     init_db,
     list_products,
     update_product,
 )
+from .models import ListingPublication, Product
 
-from .models import Product
+
+def create_listing_publication(
+    product_id: int,
+    portal: str,
+    db_path: Path = DB_PATH,
+) -> ListingPublication:
+    init_db(db_path)
+    get_product(product_id, db_path=db_path)
+
+    publication = ListingPublication(
+        id=None,
+        product_id=product_id,
+        portal=portal,
+        status="draft",
+    )
+
+    publication_id = add_listing_publication(publication, db_path=db_path)
+
+    return get_listing_publication(publication_id, db_path=db_path)
 
 
 def create_product(
@@ -41,6 +63,11 @@ def get_product_by_id(product_id: int) -> Product:
     init_db()
     return get_product(product_id)
 
+
+def get_publication(publication_id: int, portal: str) -> ListingPublication:
+    init_db()
+
+    return get_listing_publication(publication_id)
 
 def update_product_details(
     product_id: int,

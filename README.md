@@ -16,7 +16,8 @@ Aktualnie aplikacja umozliwia:
 - usuwanie produktu,
 - obsluge zdjec produktow,
 - migracje struktury bazy danych,
-- zapis informacji o publikacjach ogloszen na portalach.
+- zapis informacji o publikacjach ogloszen na portalach,
+- utworzenie publikacji produktu przez CLI.
 
 Produkt zawiera obecnie:
 
@@ -31,7 +32,7 @@ Produkt zawiera obecnie:
 Najblizsze etapy rozwoju:
 
 - obsluge zmian statusow publikacji,
-- komendy CLI do zarzadzania publikacjami,
+- kolejne komendy CLI do zarzadzania publikacjami,
 - tryb dry run dla publikacji,
 - integracje z portalami ogloszeniowymi,
 - automatyzacja przegladarki dla procesu publikacji.
@@ -123,6 +124,12 @@ Aktualizacja produktu:
 
 ```bash
 python3 -m listing_pub update-product --id 1 --price 89.99 --category "Moda"
+```
+
+Dodanie publikacji produktu:
+
+```bash
+python3 -m listing_pub add-publication --product-id 1 --portal olx
 ```
 
 ## Baza Danych

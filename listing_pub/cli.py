@@ -4,11 +4,12 @@ from pathlib import Path
 
 from .database import init_db
 from .services import (
+    create_listing_publication,
     create_product,
+    delete_product_by_id,
     get_product_by_id,
     get_products,
     update_product_details,
-    delete_product_by_id,
 )
 
 
@@ -31,22 +32,22 @@ def parse_photo_path(value: str) -> Path:
     path = Path(value)
 
     if not path.exists():
-        raise argparse.ArgumentTypeError(f'Plik nie istnieje: {path}')
+        raise argparse.ArgumentTypeError(f"Plik nie istnieje: {path}")
 
     if not path.is_file():
-        raise argparse.ArgumentTypeError(f'Sciezka nie jest plikiem: {path}')
+        raise argparse.ArgumentTypeError(f"Sciezka nie jest plikiem: {path}")
 
     return path
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser( # tworzy parser
+    parser = argparse.ArgumentParser(  # tworzy parser
         prog="listing-pub",
         description="Baza produktow w SQLite.",
     )
-    subparsers = parser.add_subparsers(dest="command", required=True) # beda rozne komendy
+    subparsers = parser.add_subparsers(dest="command", required=True)  # beda rozne komendy
 
-    subparsers.add_parser("init-db", help="Tworzy baze danych.") # dodaje komende
+    subparsers.add_parser("init-db", help="Tworzy baze danych.")  # dodaje komende
 
     add_parser = subparsers.add_parser("add-product", help="Dodaje produkt.")
     add_parser.add_argument("--title", required=True)
@@ -57,7 +58,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--photo",
         action="append",
         required=True,
-        type=parse_photo_path
+        type=parse_photo_path,
     )
 
     subparsers.add_parser("list-products", help="Pokazuje liste produktow.")
@@ -75,12 +76,28 @@ def build_parser() -> argparse.ArgumentParser:
     delete_parser = subparsers.add_parser("delete-product", help="Usun produkt.")
     delete_parser.add_argument("--id", required=True, type=int)
 
+    add_pub_parser = subparsers.add_parser("add-publication", help="Dodaje publikacje produktu.")
+    add_pub_parser.add_argument("--product-id", required=True, type=int)
+    add_pub_parser.add_argument("--portal", required=True, help="Nazwa portalu, np. olx.")
+
     return parser
 
 
 def handle_init_db() -> None:
     init_db()
     print("Baza danych gotowa.")
+
+
+def handle_add_publication(args: argparse.Namespace) -> None:
+    publication = create_listing_publication(
+        product_id=args.product_id,
+        portal=args.portal,
+    )
+    print(
+        f"Dodano publikacje id={publication.id} "
+        f"dla produktu id={publication.product_id} "
+        f"na portalu {publication.portal} ze statusem {publication.status}."
+    )
 
 
 def handle_add_product(args: argparse.Namespace) -> None:
@@ -158,6 +175,8 @@ def main() -> None:
 
     if args.command == "init-db":
         handle_init_db()
+    elif args.command == "add-publication":
+        handle_add_publication(args)
     elif args.command == "add-product":
         handle_add_product(args)
     elif args.command == "list-products":
