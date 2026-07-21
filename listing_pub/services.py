@@ -3,25 +3,27 @@ from pathlib import Path
 
 from .config import DB_PATH
 from .database import (
-    add_listing_publication,
-    add_product,
-    delete_product,
-    get_listing_publication,
-    get_product,
+    add_db_publication,
+    add_db_product,
+    delete_db_product,
+    get_db_publication,
+    get_db_product,
     init_db,
+    list_publications,
     list_products,
-    update_product,
+    update_db_publication,
+    update_db_product,
 )
 from .models import ListingPublication, Product
 
 
-def create_listing_publication(
+def create_publication(
     product_id: int,
     portal: str,
     db_path: Path = DB_PATH,
 ) -> ListingPublication:
     init_db(db_path)
-    get_product(product_id, db_path=db_path)
+    get_db_product(product_id, db_path=db_path)
 
     publication = ListingPublication(
         id=None,
@@ -30,9 +32,9 @@ def create_listing_publication(
         status="draft",
     )
 
-    publication_id = add_listing_publication(publication, db_path=db_path)
+    publication_id = add_db_publication(publication, db_path=db_path)
 
-    return get_listing_publication(publication_id, db_path=db_path)
+    return get_db_publication(publication_id, db_path=db_path)
 
 
 def create_product(
@@ -51,7 +53,18 @@ def create_product(
         category=category,
         photos=photos,
     )
-    return add_product(product)
+    return add_db_product(product)
+
+
+def get_publications() -> list[ListingPublication]:
+    init_db()
+    return list_publications()
+
+
+def get_publication_by_id(publication_id: int) -> ListingPublication:
+    init_db()
+
+    return get_db_publication(publication_id)
 
 
 def get_products() -> list[Product]:
@@ -61,13 +74,31 @@ def get_products() -> list[Product]:
 
 def get_product_by_id(product_id: int) -> Product:
     init_db()
-    return get_product(product_id)
+    return get_db_product(product_id)
 
 
-def get_publication(publication_id: int, portal: str) -> ListingPublication:
-    init_db()
+def update_publication_status(
+    publication_id: int,
+    status: str,
+    db_path: Path = DB_PATH,
+) -> ListingPublication:
+    init_db(db_path)
 
-    return get_listing_publication(publication_id)
+    if status is None:
+        raise ValueError("Podaj status do aktualizacji")
+
+    current_publication = get_db_publication(publication_id, db_path=db_path)
+    updated_publication = ListingPublication(
+        id=current_publication.id,
+        product_id=current_publication.product_id,
+        portal=current_publication.portal,
+        status=status,
+        external_url=current_publication.external_url,
+        error_message=current_publication.error_message,
+    )
+    update_db_publication(updated_publication, db_path=db_path)
+    return updated_publication
+
 
 def update_product_details(
     product_id: int,
@@ -88,7 +119,7 @@ def update_product_details(
     ):
         raise ValueError("Podaj przynajmniej jedno pole do aktualizacji.")
 
-    current_product = get_product(product_id)
+    current_product = get_db_product(product_id)
     updated_product = Product(
         id=current_product.id,
         title=title if title is not None else current_product.title,
@@ -97,12 +128,25 @@ def update_product_details(
         category=category if category is not None else current_product.category,
         photos=photos if photos is not None else current_product.photos,
     )
-    update_product(updated_product)
+    update_db_product(updated_product)
     return updated_product
+
+
+def delete_publication_by_id(publication_id: int, db_path: Path = DB_PATH) -> ListingPublication:
+    """Oznacza publikacje jako usunieta."""
+    init_db(db_path)
+    loaded_publication = get_db_publication(publication_id, db_path=db_path)
+    updated_publication = update_publication_status(
+        loaded_publication.id,
+        status="deleted",
+        db_path=db_path,
+    )
+    # TODO: mechanizm usuniecia ogloszenia na portalu
+    return updated_publication
 
 
 def delete_product_by_id(product_id: int) -> Product:
     init_db()
-    deleted_product = get_product(product_id)
-    delete_product(product_id)
+    deleted_product = get_db_product(product_id)
+    delete_db_product(product_id)
     return deleted_product

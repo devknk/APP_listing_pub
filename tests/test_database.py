@@ -2,10 +2,10 @@ from decimal import Decimal
 from pathlib import Path
 
 from listing_pub.database import (
-    add_listing_publication,
-    add_product,
-    get_listing_publication,
-    get_product,
+    add_db_publication,
+    add_db_product,
+    get_db_publication,
+    get_db_product,
     init_db,
     run_migrations,
 )
@@ -29,8 +29,8 @@ def test_add_product_saves_photos(tmp_path):
         photos=(photo_1, photo_2),
     )
 
-    product_id = add_product(product, db_path=db_path)  # dodaj produkt do bazy i zwroc id
-    loaded_product = get_product(product_id, db_path=db_path)
+    product_id = add_db_product(product, db_path=db_path)  # dodaj produkt do bazy i zwroc id
+    loaded_product = get_db_product(product_id, db_path=db_path)
 
     assert loaded_product.id == product_id
     assert loaded_product.photos == (photo_1, photo_2)
@@ -64,7 +64,7 @@ def test_add_listing_publication(tmp_path):
         photos=(photo_1, photo_2),
     )
 
-    product_id = add_product(product, db_path=db_path)
+    product_id = add_db_product(product, db_path=db_path)
 
     listing = ListingPublication(
         id=None,
@@ -75,10 +75,10 @@ def test_add_listing_publication(tmp_path):
         error_message=None,
     )
 
-    listing_id = add_listing_publication(listing, db_path=db_path)
+    listing_id = add_db_publication(listing, db_path=db_path)
     assert listing_id == 1
 
-    loaded_listing = get_listing_publication(listing_id, db_path=db_path)
+    loaded_listing = get_db_publication(listing_id, db_path=db_path)
 
     assert loaded_listing.id == listing_id
     assert loaded_listing.product_id == product_id

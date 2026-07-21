@@ -1,8 +1,8 @@
 # APP Listing Publisher
 
-Wersja: `0.1.3`
+Wersja: `0.1.5`
 
-APP Listing Publisher to pierwszy prototyp aplikacji do zarzadzania produktami przygotowywanymi do publikacji na portalach ogloszeniowych. Aktualna wersja koncentruje sie na podstawowym katalogu produktow oraz lokalnej bazie SQLite, ktora stanowi fundament pod kolejne etapy: obsluge zdjec, statusow publikacji i integracji z portalami.
+APP Listing Publisher to prototyp aplikacji do zarzadzania produktami przygotowywanymi do publikacji na portalach ogloszeniowych. Aktualna wersja obsluguje lokalny katalog produktow, zdjecia, migracje bazy danych oraz rejestrowanie publikacji ogloszen dla wybranych portali.
 
 ## Zakres Prototypu
 
@@ -16,8 +16,11 @@ Aktualnie aplikacja umozliwia:
 - usuwanie produktu,
 - obsluge zdjec produktow,
 - migracje struktury bazy danych,
-- zapis informacji o publikacjach ogloszen na portalach,
-- utworzenie publikacji produktu przez CLI.
+- utworzenie publikacji produktu dla wybranego portalu,
+- wyswietlenie listy publikacji,
+- wyswietlenie szczegolow pojedynczej publikacji,
+- aktualizacje statusu publikacji,
+- oznaczenie publikacji jako usunietej.
 
 Produkt zawiera obecnie:
 
@@ -31,11 +34,11 @@ Produkt zawiera obecnie:
 
 Najblizsze etapy rozwoju:
 
-- obsluge zmian statusow publikacji,
-- kolejne komendy CLI do zarzadzania publikacjami,
 - tryb dry run dla publikacji,
 - integracje z portalami ogloszeniowymi,
-- automatyzacja przegladarki dla procesu publikacji.
+- automatyzacja przegladarki dla procesu publikacji,
+- obsluge wyniku publikacji, w tym linku zewnetrznego i komunikatow bledow,
+- walidacje statusow publikacji na poziomie modelu aplikacji.
 
 ## Architektura
 
@@ -51,9 +54,13 @@ APP_listing_pub/
 │   ├── database.py
 │   ├── models.py
 │   └── services.py
+├── migrations/
+│   ├── 001_initial.sql
+│   └── 002_create_listing_publications.sql
+├── tests/
 ├── data/
 ├── photos/
-├── learnings/
+├── requirements-dev.txt
 ├── README.md
 └── .gitignore
 ```
@@ -65,15 +72,17 @@ Najwazniejsze moduly:
 - `database.py` - operacje na bazie SQLite,
 - `models.py` - modele danych,
 - `config.py` - sciezki i konfiguracja lokalna,
-- `__main__.py` - punkt startowy pakietu.
+- `__main__.py` - punkt startowy pakietu,
+- `migrations/` - wersjonowane zmiany struktury bazy danych,
+- `tests/` - testy automatyczne.
 
 ## Wymagania
 
 - Python 3.11 lub nowszy
 - SQLite dostepny w systemie
 
-Projekt nie wymaga obecnie zewnetrznych bibliotek.
-Do uruchamiania testow developerskich wymagany jest pytest z requirements-dev.txt.
+Do uruchamiania aplikacji nie sa wymagane zewnetrzne biblioteki.
+Do uruchamiania testow wymagany jest `pytest` z `requirements-dev.txt`.
 
 ## Uruchomienie
 
@@ -130,6 +139,44 @@ Dodanie publikacji produktu:
 
 ```bash
 python3 -m listing_pub add-publication --product-id 1 --portal olx
+```
+
+Lista publikacji:
+
+```bash
+python3 -m listing_pub list-publications
+```
+
+Szczegoly publikacji:
+
+```bash
+python3 -m listing_pub show-publication --publication-id 1
+```
+
+Aktualizacja statusu publikacji:
+
+```bash
+python3 -m listing_pub update-publication-status --publication-id 1 --status publicated
+```
+
+Oznaczenie publikacji jako usunietej:
+
+```bash
+python3 -m listing_pub delete-publication --publication-id 1
+```
+
+Usuniecie produktu:
+
+```bash
+python3 -m listing_pub delete-product --id 1
+```
+
+## Testy
+
+Testy automatyczne mozna uruchomic poleceniem:
+
+```bash
+python3 -m pytest
 ```
 
 ## Baza Danych
@@ -191,4 +238,4 @@ sqlite3 data/products.sqlite3 "SELECT * FROM listing_publications;"
 
 ## Status
 
-Prototyp obsluguje podstawowy CRUD produktow, zapis sciezek zdjec oraz podstawowy zapis publikacji ogloszen w lokalnej bazie SQLite.
+Prototyp obsluguje podstawowy CRUD produktow, zapis sciezek zdjec, migracje bazy danych oraz zarzadzanie rekordami publikacji ogloszen w lokalnej bazie SQLite. Integracja z portalami ogloszeniowymi i automatyzacja przegladarki sa przewidziane w kolejnych etapach rozwoju.
