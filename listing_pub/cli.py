@@ -4,11 +4,15 @@ from pathlib import Path
 
 from .database import init_db
 from .services import (
-    create_listing_publication,
+    create_publication,
     create_product,
+    delete_publication_by_id,
     delete_product_by_id,
+    get_publications,
+    get_publication_by_id,
     get_product_by_id,
     get_products,
+    update_publication_status,
     update_product_details,
 )
 
@@ -62,6 +66,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     subparsers.add_parser("list-products", help="Pokazuje liste produktow.")
+    subparsers.add_parser("list-publications", help="Pokazuje liste ogloszen.")
 
     show_parser = subparsers.add_parser("show-product", help="Pokazuje jeden produkt.")
     show_parser.add_argument("--id", required=True, type=int)
@@ -80,6 +85,16 @@ def build_parser() -> argparse.ArgumentParser:
     add_pub_parser.add_argument("--product-id", required=True, type=int)
     add_pub_parser.add_argument("--portal", required=True, help="Nazwa portalu, np. olx.")
 
+    show_pub_parser = subparsers.add_parser("show-publication", help="Pokazuje ogloszenie.")
+    show_pub_parser.add_argument("--publication-id", required=True, type=int)
+
+    delete_pub_parser = subparsers.add_parser("delete-publication", help="Usun ogloszenie.")
+    delete_pub_parser.add_argument("--publication-id", required=True, type=int)
+
+    update_pub_parser = subparsers.add_parser("update-publication-status", help="Aktualizuje status ogloszenia.")
+    update_pub_parser.add_argument("--publication-id", required=True, type=int)
+    update_pub_parser.add_argument("--status", required=True, choices=["draft", "published", "deleted"])
+
     return parser
 
 
@@ -89,7 +104,7 @@ def handle_init_db() -> None:
 
 
 def handle_add_publication(args: argparse.Namespace) -> None:
-    publication = create_listing_publication(
+    publication = create_publication(
         product_id=args.product_id,
         portal=args.portal,
     )
@@ -111,7 +126,22 @@ def handle_add_product(args: argparse.Namespace) -> None:
     print(f"Dodano produkt id={product_id}.")
 
 
-def handle_list_products() -> None:
+def handle_list_publications(args: argparse.Namespace) -> None:
+    publications = get_publications()
+
+    if not publications:
+        print("Nie ma ogloszen w bazie")
+        return
+
+    for publication in publications:
+        print(
+            f"[{publication.id}] "
+            f"{publication.portal} "
+            f"{publication.status} "
+        )
+
+
+def handle_list_products(args: argparse.Namespace) -> None:
     products = get_products()
 
     if not products:
@@ -126,6 +156,13 @@ def handle_list_products() -> None:
         )
 
 
+def handle_show_publication(args: argparse.Namespace) -> None:
+    publication = get_publication_by_id(args.publication_id)
+
+    print(f"[{publication.id}] ")
+    print(f"{publication.portal} | {publication.status} ")
+
+
 def handle_show_product(args: argparse.Namespace) -> None:
     product = get_product_by_id(args.id)
 
@@ -138,6 +175,15 @@ def handle_show_product(args: argparse.Namespace) -> None:
     for photo in product.photos:
         print(f"- {photo}")
 
+
+def handle_update_publication_status(args: argparse.Namespace) -> None:
+    try:
+        publication = update_publication_status(args.publication_id, args.status)
+    except (LookupError, ValueError) as exc:
+        print(f"Blad: {exc}")
+        return
+    print(f"Zaktualizowano status ogloszenia o id: {publication.id}")
+    print(f"Aktualny status: {publication.status}")
 
 def handle_update_product(args: argparse.Namespace) -> None:
     try:
@@ -157,6 +203,16 @@ def handle_update_product(args: argparse.Namespace) -> None:
     print(f"Opis: {product.description}")
     print(f"Cena: {product.price} PLN")
     print(f"Kategoria: {product.category}")
+
+
+def handle_delete_publication(args: argparse.Namespace) -> None:
+    try:
+        deleted_publication = delete_publication_by_id(args.publication_id)
+    except LookupError as exc:
+        print(f"Blad: {exc}")
+        return
+
+    print(f"Usunieto z portalu {deleted_publication.portal} ogloszenie id={deleted_publication.id}.")
 
 
 def handle_delete_product(args: argparse.Namespace) -> None:
@@ -179,12 +235,20 @@ def main() -> None:
         handle_add_publication(args)
     elif args.command == "add-product":
         handle_add_product(args)
+    elif args.command == "list-publications":
+        handle_list_publications(args)
     elif args.command == "list-products":
-        handle_list_products()
+        handle_list_products(args)
+    elif args.command == "show-publication":
+        handle_show_publication(args)
     elif args.command == "show-product":
         handle_show_product(args)
+    elif args.command == "update-publication-status":
+        handle_update_publication_status(args)
     elif args.command == "update-product":
         handle_update_product(args)
+    elif args.command == "delete-publication":
+        handle_delete_publication(args)
     elif args.command == "delete-product":
         handle_delete_product(args)
     else:

@@ -68,7 +68,7 @@ def run_migrations(db_path: Path = DB_PATH) -> list[str]:
     return applied_now
 
 
-def add_product(product: Product, db_path: Path = DB_PATH) -> int:
+def add_db_product(product: Product, db_path: Path = DB_PATH) -> int:
     """Dodaje produkt do bazy i zwraca jego nowe id."""
     product.validate()
 
@@ -99,7 +99,7 @@ def add_product(product: Product, db_path: Path = DB_PATH) -> int:
         return product_id
 
 
-def add_listing_publication(
+def add_db_publication(
     publication: ListingPublication,
     db_path: Path = DB_PATH,
 ) -> int:
@@ -121,6 +121,30 @@ def add_listing_publication(
         listing_id = int(cursor.lastrowid)
 
         return listing_id
+
+
+def list_publications(db_path: Path = DB_PATH) -> list[ListingPublication]:
+    """Pobiera wszystkie ogloszenia z bazy."""
+    with connect(db_path) as connection:
+        rows = connection.execute(
+            """
+            SELECT * FROM listing_publications
+            ORDER BY created_at DESC,
+            id DESC
+            """
+        ).fetchall()
+        publications: list[ListingPublication] = []
+        for row in rows:
+            publication = ListingPublication(
+                id=int(row["id"]),
+                product_id=row["product_id"],
+                portal=row["portal"],
+                status=row["status"],
+                external_url=row["external_url"],
+                error_message=row["error_message"],
+            )
+            publications.append(publication)
+    return publications
 
 
 def list_products(db_path: Path = DB_PATH) -> list[Product]:
@@ -154,7 +178,7 @@ def list_products(db_path: Path = DB_PATH) -> list[Product]:
     return products
 
 
-def get_product(product_id: int, db_path: Path = DB_PATH) -> Product:
+def get_db_product(product_id: int, db_path: Path = DB_PATH) -> Product:
     """Pobiera jeden produkt po id."""
     with connect(db_path) as connection:
         row = connection.execute(
@@ -184,16 +208,16 @@ def get_product(product_id: int, db_path: Path = DB_PATH) -> Product:
     )
 
 
-def get_listing_publication(listing_id: int, db_path: Path = DB_PATH) -> ListingPublication:
+def get_db_publication(publication_id: int, db_path: Path = DB_PATH) -> ListingPublication:
     """Pobiera jedna publikacje ogloszenia po id."""
     with connect(db_path) as connection:
         row = connection.execute(
             "SELECT * FROM listing_publications WHERE id = ?",
-            (listing_id,),
+            (publication_id,),
         ).fetchone()
 
         if row is None:
-            raise LookupError(f"Nie znaleziono ogłoszenia o id={listing_id}.")
+            raise LookupError(f"Nie znaleziono ogłoszenia o id={publication_id}.")
 
         return ListingPublication(
             id=int(row["id"]),
@@ -205,7 +229,28 @@ def get_listing_publication(listing_id: int, db_path: Path = DB_PATH) -> Listing
         )
 
 
-def update_product(product: Product, db_path: Path = DB_PATH) -> None:
+def update_db_publication(publication: ListingPublication, db_path: Path = DB_PATH) -> None:
+    """Aktualizuje istniejace ogloszenie w bazie"""
+    if publication.id is None:
+        raise ValueError("Nie mozna zaktualizowac ogloszenia bez id.")
+
+    # publication.validate_publication()?
+
+    with connect(db_path) as connection:
+        cursor = connection.execute(
+            """
+            UPDATE listing_publications
+            SET status = ?
+            WHERE id = ?
+            """,
+            (publication.status, publication.id),
+        )
+
+    if cursor.rowcount == 0:
+        raise LookupError(f"Nie znaleziono ogloszenia o id={publication.id}.")
+
+
+def update_db_product(product: Product, db_path: Path = DB_PATH) -> None:
     """Aktualizuje istniejacy produkt w bazie."""
     if product.id is None:
         raise ValueError("Nie mozna aktualizowac produktu bez id.")
@@ -232,7 +277,7 @@ def update_product(product: Product, db_path: Path = DB_PATH) -> None:
         raise LookupError(f"Nie znaleziono produktu o id={product.id}.")
 
 
-def delete_product(product_id: int, db_path: Path = DB_PATH) -> None:
+def delete_db_product(product_id: int, db_path: Path = DB_PATH) -> None:
     """Usuwa produkt z bazy po id."""
     with connect(db_path) as connection:
         cursor = connection.execute(
