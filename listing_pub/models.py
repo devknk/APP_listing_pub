@@ -47,3 +47,15 @@ class ListingPublication:
     status: str = "draft"
     external_url: str | None = None
     error_message: str | None = None
+
+
+@dataclass(frozen=True)
+class PublicationDryRun:
+    """Plan publikacji bez wykonywania zmian na portalu."""
+
+    publication_id: int
+    portal: str
+    product_title: str
+    price: Decimal
+    photo_count: int
+    steps: tuple[str, ...]

@@ -14,7 +14,7 @@ from .database import (
     update_db_publication,
     update_db_product,
 )
-from .models import ListingPublication, Product
+from .models import ListingPublication, Product, PublicationDryRun
 
 
 def create_publication(
@@ -75,6 +75,37 @@ def get_products() -> list[Product]:
 def get_product_by_id(product_id: int) -> Product:
     init_db()
     return get_db_product(product_id)
+
+
+def prepare_publication_dry_run(
+    publication_id: int,
+    db_path: Path = DB_PATH,
+) -> PublicationDryRun:
+    init_db(db_path)
+    publication = get_db_publication(publication_id, db_path=db_path)
+    product = get_db_product(publication.product_id, db_path=db_path)
+    if not product.photos:
+        raise ValueError("Nie mozna opublikowac produktu bez zdjec.")
+
+    publication_dry_run = PublicationDryRun(
+        publication_id=publication_id,
+        portal=publication.portal,
+        product_title=product.title,
+        price=product.price,
+        photo_count=len(product.photos),
+        steps=(
+            f"Otworz portal {publication.portal}",
+            "Zaloguj uzytkownika",
+            "Przejdz do formularza dodawania ogloszenia",
+            "Wpisz tytul produktu",
+            "Wpisz opis produktu",
+            "Ustaw cene",
+            "Wybierz kategorie",
+            "Dodaj zdjecia",
+            "Kliknij publikuj",
+        ),
+    )
+    return publication_dry_run
 
 
 def update_publication_status(

@@ -6,6 +6,7 @@ from listing_pub.models import Product
 from listing_pub.services import (
     create_publication,
     delete_publication_by_id,
+    prepare_publication_dry_run,
     update_publication_status,
 )
 
@@ -71,3 +72,24 @@ def test_delete_publication_by_id(tmp_path) -> None:
     assert deleted_publication.id == loaded_publication.id
     assert loaded_publication.status == "deleted"
     assert loaded_publication.portal == "nieznany"
+
+
+def test_prepare_publication_dry_run(tmp_path) -> None:
+    db_path = tmp_path / "products.sqlite3"
+    init_db(db_path)
+
+    product_id = create_test_product(db_path)
+    publication = create_publication(
+        product_id,
+        portal="olx",
+        db_path=db_path,
+    )
+
+    dry_run = prepare_publication_dry_run(publication.id, db_path=db_path)
+
+    assert dry_run.publication_id == publication.id
+    assert dry_run.portal == "olx"
+    assert dry_run.product_title == "Testowy produkt"
+    assert dry_run.price == Decimal("10.90")
+    assert dry_run.photo_count == 1
+    assert "Kliknij publikuj" in dry_run.steps
