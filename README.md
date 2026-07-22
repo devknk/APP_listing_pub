@@ -1,6 +1,6 @@
 # APP Listing Publisher
 
-Wersja: `0.1.5`
+Wersja: `0.1.6`
 
 APP Listing Publisher to prototyp aplikacji do zarzadzania produktami przygotowywanymi do publikacji na portalach ogloszeniowych. Aktualna wersja obsluguje lokalny katalog produktow, zdjecia, migracje bazy danych oraz rejestrowanie publikacji ogloszen dla wybranych portali.
 
@@ -20,7 +20,8 @@ Aktualnie aplikacja umozliwia:
 - wyswietlenie listy publikacji,
 - wyswietlenie szczegolow pojedynczej publikacji,
 - aktualizacje statusu publikacji,
-- oznaczenie publikacji jako usunietej.
+- oznaczenie publikacji jako usunietej,
+- tryb dry run dla publikacji.
 
 Produkt zawiera obecnie:
 
@@ -34,11 +35,14 @@ Produkt zawiera obecnie:
 
 Najblizsze etapy rozwoju:
 
-- tryb dry run dla publikacji,
 - integracje z portalami ogloszeniowymi,
 - automatyzacja przegladarki dla procesu publikacji,
 - obsluge wyniku publikacji, w tym linku zewnetrznego i komunikatow bledow,
 - walidacje statusow publikacji na poziomie modelu aplikacji.
+
+Proponowane ulepszenia:
+
+- lepsze wyświetlanie publikacji.
 
 ## Architektura
 
@@ -156,8 +160,16 @@ python3 -m listing_pub show-publication --publication-id 1
 Aktualizacja statusu publikacji:
 
 ```bash
-python3 -m listing_pub update-publication-status --publication-id 1 --status publicated
+python3 -m listing_pub update-publication-status --publication-id 1 --status published
 ```
+
+Dry run publikacji:
+
+```bash
+python3 -m listing_pub publish --publication-id 1 --dry-run
+```
+
+Tryb dry run przygotowuje plan publikacji i wyswietla kroki, ktore zostalyby wykonane na portalu. Nie loguje sie do portalu, nie uruchamia automatyzacji przegladarki i nie publikuje ogloszenia.
 
 Oznaczenie publikacji jako usunietej:
 
@@ -238,4 +250,4 @@ sqlite3 data/products.sqlite3 "SELECT * FROM listing_publications;"
 
 ## Status
 
-Prototyp obsluguje podstawowy CRUD produktow, zapis sciezek zdjec, migracje bazy danych oraz zarzadzanie rekordami publikacji ogloszen w lokalnej bazie SQLite. Integracja z portalami ogloszeniowymi i automatyzacja przegladarki sa przewidziane w kolejnych etapach rozwoju.
+Prototyp obsluguje podstawowy CRUD produktow, zapis sciezek zdjec, migracje bazy danych, zarzadzanie rekordami publikacji ogloszen oraz tryb dry run w lokalnej bazie SQLite. Integracja z portalami ogloszeniowymi i automatyzacja przegladarki sa przewidziane w kolejnych etapach rozwoju.

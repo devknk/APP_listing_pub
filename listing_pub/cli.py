@@ -12,6 +12,7 @@ from .services import (
     get_publication_by_id,
     get_product_by_id,
     get_products,
+    prepare_publication_dry_run,
     update_publication_status,
     update_product_details,
 )
@@ -95,6 +96,10 @@ def build_parser() -> argparse.ArgumentParser:
     update_pub_parser.add_argument("--publication-id", required=True, type=int)
     update_pub_parser.add_argument("--status", required=True, choices=["draft", "published", "deleted"])
 
+    publish_parser = subparsers.add_parser("publish", help="Publikuje ogloszenie.")
+    publish_parser.add_argument("--publication-id", required=True, type=int)
+    publish_parser.add_argument("--dry-run", action="store_true")
+
     return parser
 
 
@@ -156,6 +161,28 @@ def handle_list_products(args: argparse.Namespace) -> None:
         )
 
 
+def handle_publish(args: argparse.Namespace) -> None:
+    if not args.dry_run:
+        print("Na razie dostepny jest tylko tryb dry-run")
+        return
+
+    dry_run = prepare_publication_dry_run(args.publication_id)
+
+    print(f"DRY RUN: publikacja id={dry_run.publication_id}")
+    print(f"Portal: {dry_run.portal}")
+    print(f"Produkt: {dry_run.product_title}")
+    print(f"Cena: {dry_run.price} PLN")
+    print(f"Zdjecia: {dry_run.photo_count}")
+    print()
+    print("Kroki, ktore zostalyby wykonane:")
+
+    for index, step in enumerate(dry_run.steps, start=1):
+        print(f"{index}. {step}")
+
+    print()
+    print("Nie wykonano zadnych zmian na portalu.")
+
+
 def handle_show_publication(args: argparse.Namespace) -> None:
     publication = get_publication_by_id(args.publication_id)
 
@@ -184,6 +211,7 @@ def handle_update_publication_status(args: argparse.Namespace) -> None:
         return
     print(f"Zaktualizowano status ogloszenia o id: {publication.id}")
     print(f"Aktualny status: {publication.status}")
+
 
 def handle_update_product(args: argparse.Namespace) -> None:
     try:
@@ -243,6 +271,8 @@ def main() -> None:
         handle_show_publication(args)
     elif args.command == "show-product":
         handle_show_product(args)
+    elif args.command == "publish":
+        handle_publish(args)
     elif args.command == "update-publication-status":
         handle_update_publication_status(args)
     elif args.command == "update-product":
