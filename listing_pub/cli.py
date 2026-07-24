@@ -3,6 +3,7 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 from .database import init_db
+from .models import ALLOWED_PUBLICATION_PORTALS, ALLOWED_PUBLICATION_STATUSES
 from .services import (
     create_publication,
     create_product,
@@ -84,7 +85,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     add_pub_parser = subparsers.add_parser("add-publication", help="Dodaje publikacje produktu.")
     add_pub_parser.add_argument("--product-id", required=True, type=int)
-    add_pub_parser.add_argument("--portal", required=True, help="Nazwa portalu, np. olx.")
+    add_pub_parser.add_argument(
+        "--portal", required=True,
+        choices=sorted(ALLOWED_PUBLICATION_PORTALS),
+        help="Nazwa portalu, np. olx.",
+    )
 
     show_pub_parser = subparsers.add_parser("show-publication", help="Pokazuje ogloszenie.")
     show_pub_parser.add_argument("--publication-id", required=True, type=int)
@@ -94,7 +99,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     update_pub_parser = subparsers.add_parser("update-publication-status", help="Aktualizuje status ogloszenia.")
     update_pub_parser.add_argument("--publication-id", required=True, type=int)
-    update_pub_parser.add_argument("--status", required=True, choices=["draft", "published", "deleted"])
+    update_pub_parser.add_argument(
+        "--status",
+        required=True,
+        choices=sorted(ALLOWED_PUBLICATION_STATUSES),
+        help="Nazwa status np. draft.",
+    )
 
     publish_parser = subparsers.add_parser("publish", help="Publikuje ogloszenie.")
     publish_parser.add_argument("--publication-id", required=True, type=int)

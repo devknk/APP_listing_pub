@@ -104,6 +104,7 @@ def add_db_publication(
     db_path: Path = DB_PATH,
 ) -> int:
     """Dodaje publikacje ogloszenia do bazy i zwraca jej nowe id."""
+    publication.validate()
     with connect(db_path) as connection:
         cursor = connection.execute(
             """
@@ -234,7 +235,7 @@ def update_db_publication(publication: ListingPublication, db_path: Path = DB_PA
     if publication.id is None:
         raise ValueError("Nie mozna zaktualizowac ogloszenia bez id.")
 
-    # publication.validate_publication()?
+    publication.validate()
 
     with connect(db_path) as connection:
         cursor = connection.execute(
