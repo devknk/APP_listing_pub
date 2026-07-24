@@ -3,6 +3,8 @@ from decimal import Decimal
 from pathlib import Path
 
 ALLOWED_PHOTO_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+ALLOWED_PUBLICATION_PORTALS = {"olx", "vinted", "allegro_lokalnie"}
+ALLOWED_PUBLICATION_STATUSES = {"draft", "published", "deleted", "failed"}
 # TODO: zmiana na biblioteke pillow
 
 
@@ -47,6 +49,14 @@ class ListingPublication:
     status: str = "draft"
     external_url: str | None = None
     error_message: str | None = None
+
+    def validate(self) -> None:
+        """Sprawdza podstawowe reguly publikacji przed zapisem do bazy."""
+        if self.portal not in ALLOWED_PUBLICATION_PORTALS:
+            raise ValueError(f"Nieobslugiwany portal: {self.portal}")
+
+        if self.status not in ALLOWED_PUBLICATION_STATUSES:
+            raise ValueError(f"Nieobslugiwany status publikacji: {self.status}")
 
 
 @dataclass(frozen=True)

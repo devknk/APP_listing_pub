@@ -1,6 +1,8 @@
 from decimal import Decimal
 from pathlib import Path
 
+import pytest
+
 from listing_pub.database import add_db_product, get_db_publication, init_db
 from listing_pub.models import Product
 from listing_pub.services import (
@@ -65,13 +67,13 @@ def test_delete_publication_by_id(tmp_path) -> None:
     init_db(db_path)
 
     product_id = create_test_product(db_path)
-    publication = create_publication(product_id, portal="nieznany", db_path=db_path)
+    publication = create_publication(product_id, portal="olx", db_path=db_path)
     deleted_publication = delete_publication_by_id(publication.id, db_path=db_path)
     loaded_publication = get_db_publication(publication.id, db_path=db_path)
 
     assert deleted_publication.id == loaded_publication.id
     assert loaded_publication.status == "deleted"
-    assert loaded_publication.portal == "nieznany"
+    assert loaded_publication.portal == "olx"
 
 
 def test_prepare_publication_dry_run(tmp_path) -> None:
@@ -93,3 +95,28 @@ def test_prepare_publication_dry_run(tmp_path) -> None:
     assert dry_run.price == Decimal("10.90")
     assert dry_run.photo_count == 1
     assert "Kliknij publikuj" in dry_run.steps
+
+
+def test_create_publication_rejects_unknown_portal(tmp_path) -> None:
+    db_path = tmp_path / "products.sqlite3"
+    init_db(db_path)
+
+    product_id = create_test_product(db_path)
+
+    with pytest.raises(ValueError):
+        create_publication(product_id, portal="nieznany", db_path=db_path)
+
+
+def test_update_publication_rejects_unknown_status(tmp_path) -> None:
+    db_path = tmp_path / "products.sqlite3"
+    init_db(db_path)
+
+    product_id = create_test_product(db_path)
+    publication = create_publication(product_id, portal="olx", db_path=db_path)
+
+    with pytest.raises(ValueError):
+        update_publication_status(
+            publication.id,
+            status="unknown",
+            db_path=db_path,
+        )

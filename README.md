@@ -1,6 +1,6 @@
 # APP Listing Publisher
 
-Wersja: `0.1.6`
+Wersja: `0.1.7`
 
 APP Listing Publisher to prototyp aplikacji do zarzadzania produktami przygotowywanymi do publikacji na portalach ogloszeniowych. Aktualna wersja obsluguje lokalny katalog produktow, zdjecia, migracje bazy danych oraz rejestrowanie publikacji ogloszen dla wybranych portali.
 
@@ -21,7 +21,8 @@ Aktualnie aplikacja umozliwia:
 - wyswietlenie szczegolow pojedynczej publikacji,
 - aktualizacje statusu publikacji,
 - oznaczenie publikacji jako usunietej,
-- tryb dry run dla publikacji.
+- tryb dry run dla publikacji,
+- walidacje dozwolonych portali i statusow publikacji.
 
 Produkt zawiera obecnie:
 
@@ -37,8 +38,7 @@ Najblizsze etapy rozwoju:
 
 - integracje z portalami ogloszeniowymi,
 - automatyzacja przegladarki dla procesu publikacji,
-- obsluge wyniku publikacji, w tym linku zewnetrznego i komunikatow bledow,
-- walidacje statusow publikacji na poziomie modelu aplikacji.
+- obsluge wyniku publikacji, w tym linku zewnetrznego i komunikatow bledow.
 
 Proponowane ulepszenia:
 
@@ -145,6 +145,12 @@ Dodanie publikacji produktu:
 python3 -m listing_pub add-publication --product-id 1 --portal olx
 ```
 
+Dozwolone portale:
+
+- `olx`,
+- `vinted`,
+- `allegro_lokalnie`.
+
 Lista publikacji:
 
 ```bash
@@ -162,6 +168,13 @@ Aktualizacja statusu publikacji:
 ```bash
 python3 -m listing_pub update-publication-status --publication-id 1 --status published
 ```
+
+Dozwolone statusy publikacji:
+
+- `draft`,
+- `published`,
+- `deleted`,
+- `failed`.
 
 Dry run publikacji:
 
@@ -250,4 +263,4 @@ sqlite3 data/products.sqlite3 "SELECT * FROM listing_publications;"
 
 ## Status
 
-Prototyp obsluguje podstawowy CRUD produktow, zapis sciezek zdjec, migracje bazy danych, zarzadzanie rekordami publikacji ogloszen oraz tryb dry run w lokalnej bazie SQLite. Integracja z portalami ogloszeniowymi i automatyzacja przegladarki sa przewidziane w kolejnych etapach rozwoju.
+Prototyp obsluguje podstawowy CRUD produktow, zapis sciezek zdjec, migracje bazy danych, zarzadzanie rekordami publikacji ogloszen, walidacje portali i statusow oraz tryb dry run w lokalnej bazie SQLite. Integracja z portalami ogloszeniowymi i automatyzacja przegladarki sa przewidziane w kolejnych etapach rozwoju.
